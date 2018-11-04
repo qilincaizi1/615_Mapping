@@ -1,0 +1,69 @@
+---
+title: "Restaurant Mapping"
+author: "Si Chen"
+date: "November 4, 2018"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+# load the data of restaurant insprction
+RES <- read.csv("D:/school material/615 hw/mapping/mayorsfoodcourt.csv",na.strings=c("","NA"))
+```
+
+```{r}
+#we need all data from boston
+RES <- subset(RES, CITY =="Boston")
+# to reduce the point density, only use the the restaurant with violation level = ***
+
+RES <- subset(RES, RES$ViolLevel == "***")
+
+## further reduction: violation status = fail
+RES <- subset(RES, RES$ViolStatus == "Fail")
+
+
+####last reduction, Location != NA
+res <- subset(RES, !(is.na(RES$Location)))
+
+res1 <- subset(res, !duplicated(subset(res, select = LICENSENO)))
+res1$lon <- as.numeric(substring(res1$Location, 16, 28))
+res1$lat <- as.numeric(substring(res1$Location, 2, 13))
+```
+
+```{r}
+# library(ggplot2)
+# require(ggmap)
+# 
+# map.center <- geocode("Boston,MA", output = c("latlon", "latlona", "more", "all"), source = c("google", "dsk"), messaging = FALSE, force = ifelse(source == "dsk", FALSE, TRUE), sensor = FALSE, override_limit = FALSE)
+# 
+# geocodeQueryCheck(userType = "free")
+# 
+# #map.center <- as.data.frame(as.list(c(lon = "42.3601",lat = "71.0589")))
+# 
+# Bos_map <- qmap(c(lon = map.center$lon, lat = map.center$lat), source:"google",center = map.center, zoom=12,size = 640*640,sensor = FALSE, maptype = "roadmap")
+# 
+# Bos_map + geom_point(data = res1, size = 4, alpha = 0.2) + aes(x="lon", y="lat") +
+#   ggtitle("Restaurant failed the violation check with level *** in Boston")
+
+```
+
+
+```{r}
+library(leaflet)
+
+
+res1[, c("lat", "lon")]%>%
+  leaflet()%>%
+  addTiles()%>%
+  addMarkers()%>%
+  setView(-71.13062, 42.35308, zoom = 14)
+
+```
+
+
